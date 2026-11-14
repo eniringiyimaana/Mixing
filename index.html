@@ -1,0 +1,1774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keyboard DJ - Mix with Your Keys</title>
+    <style>
+        :root {
+    --deck1-color: #3498db;
+    --deck2-color: #e74c3c;
+    --dark-bg: #1a1a2e;
+    --darker-bg: #16213e;
+    --highlight: #0f3460;
+    --text-color: #e6e6e6;
+    --success: #2ecc71;
+    --warning: #f39c12;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--dark-bg);
+    color: var(--text-color);
+    overflow: hidden;
+    user-select: none;
+}
+
+.app-container {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    height: 100vh;
+    padding: 10px;
+    gap: 10px;
+}
+
+/* Header Styles */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: var(--darker-bg);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+.header-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.header-btn {
+    background-color: var(--highlight);
+    border: none;
+    border-radius: 4px;
+    padding: 8px 15px;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.header-btn:hover {
+    background-color: #1a4a7a;
+}
+
+.header-btn:focus {
+    outline: 2px solid var(--deck1-color);
+    outline-offset: 2px;
+}
+
+/* Main Content Styles */
+.main-content {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 20px;
+    height: calc(100vh - 140px);
+    min-height: 0;
+    overflow: hidden;
+}
+
+.decks-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr auto auto;
+    gap: 15px;
+    height: 100%;
+    min-height: 0;
+}
+
+.deck {
+    background-color: var(--darker-bg);
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    min-height: 0;
+}
+
+.deck-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    min-height: 60px;
+}
+
+.deck-title {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.deck1 .deck-title {
+    color: var(--deck1-color);
+}
+
+.deck2 .deck-title {
+    color: var(--deck2-color);
+}
+
+.track-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+    min-width: 0;
+}
+
+.track-name {
+    font-size: 16px;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.track-artist {
+    font-size: 14px;
+    opacity: 0.8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #e6e6e6;
+}
+
+.waveform {
+    height: 80px;
+    background: linear-gradient(to bottom, #2c3e50, #34495e);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.waveform::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="100" viewBox="0 0 4 100"><rect width="2" height="100" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+}
+
+.playback-controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.control-btn {
+    background-color: var(--highlight);
+    border: none;
+    border-radius: 4px;
+    padding: 10px;
+    color: var(--text-color);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    font-size: 14px;
+}
+
+.control-btn:hover {
+    background-color: #1a4a7a;
+}
+
+.control-btn:focus {
+    outline: 2px solid var(--deck1-color);
+    outline-offset: 2px;
+}
+
+.control-btn.active {
+    background-color: var(--deck1-color);
+}
+
+.deck2 .control-btn.active {
+    background-color: var(--deck2-color);
+}
+
+.pitch-control {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+.pitch-slider {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    background: #2c3e50;
+    outline: none;
+}
+
+.pitch-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.pitch-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--text-color);
+    cursor: pointer;
+    border: none;
+}
+
+.deck1 .pitch-slider::-webkit-slider-thumb {
+    background: var(--deck1-color);
+}
+
+.deck2 .pitch-slider::-webkit-slider-thumb {
+    background: var(--deck2-color);
+}
+
+.deck1 .pitch-slider::-moz-range-thumb {
+    background: var(--deck1-color);
+}
+
+.deck2 .pitch-slider::-moz-range-thumb {
+    background: var(--deck2-color);
+}
+
+.eq-controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.eq-knob {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.knob {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: conic-gradient(var(--highlight) 0%, var(--text-color) 100%);
+    position: relative;
+    transform-origin: center;
+    transition: transform 0.1s ease;
+}
+
+.knob::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    height: 20px;
+    background-color: #fff;
+    transform: translate(-50%, -50%) rotate(0deg);
+    transform-origin: bottom center;
+}
+
+.eq-label {
+    font-size: 12px;
+    text-align: center;
+}
+
+/* Crossfader Styles */
+.crossfader-container {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background-color: var(--darker-bg);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
+}
+
+.crossfader {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 10px;
+    border-radius: 5px;
+    background: linear-gradient(to right, var(--deck1-color), #7f8c8d, var(--deck2-color));
+    outline: none;
+}
+
+.crossfader::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--text-color);
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.crossfader::-moz-range-thumb {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--text-color);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Effects Section */
+.effects-section {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    padding: 15px;
+    background-color: var(--darker-bg);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
+}
+
+.effect {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background-color: var(--highlight);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.effect:hover {
+    background-color: #1a4a7a;
+}
+
+.effect:focus {
+    outline: 2px solid var(--deck1-color);
+    outline-offset: 2px;
+}
+
+.effect.active {
+    background-color: var(--deck1-color);
+}
+
+/* Library Styles */
+.library {
+    background-color: var(--darker-bg);
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    height: 100%;
+}
+
+.library-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+}
+
+.library-title {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.upload-btn {
+    background-color: var(--success);
+    border: none;
+    border-radius: 4px;
+    padding: 8px 15px;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.upload-btn:hover {
+    background-color: #27ae60;
+}
+
+.upload-btn:focus {
+    outline: 2px solid var(--success);
+    outline-offset: 2px;
+}
+
+.track-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    position: relative;
+}
+
+.track-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: var(--highlight);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-height: 60px;
+}
+
+.track-item:hover {
+    background-color: #1a4a7a;
+}
+
+.track-item.active {
+    background-color: var(--deck1-color);
+}
+
+.track-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.track-item-name {
+    font-size: 14px;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.track-item-artist {
+    font-size: 12px;
+    opacity: 0.8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #e6e6e6;
+}
+
+.track-item-duration {
+    font-size: 12px;
+    opacity: 0.7;
+    flex-shrink: 0;
+    margin: 0 10px;
+}
+
+.assign-buttons {
+    display: flex;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+.assign-btn {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 3px;
+    padding: 4px 8px;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.assign-btn:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.assign-btn:focus {
+    outline: 2px solid var(--deck1-color);
+    outline-offset: 1px;
+}
+
+.assign-deck1 {
+    background-color: var(--deck1-color);
+}
+
+.assign-deck2 {
+    background-color: var(--deck2-color);
+}
+
+/* Footer Styles */
+.footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: var(--darker-bg);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
+}
+
+.key-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.key {
+    padding: 5px 10px;
+    background-color: var(--highlight);
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.key-description {
+    font-size: 14px;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: var(--darker-bg);
+    padding: 30px;
+    border-radius: 8px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-title {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.close-modal:focus {
+    outline: 2px solid var(--deck1-color);
+    outline-offset: 2px;
+}
+
+.keyboard-layout {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.key-command {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    background-color: var(--highlight);
+    border-radius: 4px;
+}
+
+.key-combo {
+    display: flex;
+    gap: 5px;
+}
+
+.key-combo kbd {
+    padding: 3px 6px;
+    background-color: var(--dark-bg);
+    border-radius: 3px;
+    font-family: monospace;
+}
+
+/* Upload Modal */
+.upload-area {
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    padding: 40px 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.upload-area:hover {
+    border-color: var(--deck1-color);
+    background-color: rgba(52, 152, 219, 0.1);
+}
+
+.upload-area.dragover {
+    border-color: var(--success);
+    background-color: rgba(46, 204, 113, 0.1);
+}
+
+.upload-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.file-input {
+    display: none;
+}
+
+.uploaded-files {
+    margin-top: 20px;
+}
+
+.uploaded-file {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: var(--highlight);
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.file-name {
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+}
+
+.file-status {
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 3px;
+}
+
+.status-success {
+    background-color: var(--success);
+}
+
+.status-processing {
+    background-color: var(--warning);
+}
+
+/* Animation for key press */
+@keyframes keyPress {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.95); }
+    100% { transform: scale(1); }
+}
+
+.key-pressed {
+    animation: keyPress 0.1s ease;
+    transform: translateZ(0);
+}
+
+/* Progress bars for waveforms */
+.progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: rgba(52, 152, 219, 0.3);
+    width: 0%;
+    transition: width 0.1s linear;
+}
+
+.deck2 .progress {
+    background: rgba(231, 76, 60, 0.3);
+}
+
+/* Volume meters */
+.volume-meter {
+    height: 100px;
+    width: 20px;
+    background-color: #2c3e50;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.volume-level {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(to top, #2ecc71, #f1c40f, #e74c3c);
+    height: 0%;
+    transition: height 0.1s;
+}
+
+.volume-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.volume-label {
+    font-size: 12px;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+}
+
+/* BPM Display */
+.bpm-display {
+    font-size: 14px;
+    background-color: var(--highlight);
+    padding: 5px 10px;
+    border-radius: 4px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+/* Effect status */
+.effect-status {
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* File upload improvements */
+.file-upload-container {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* Responsive improvements */
+@media (max-width: 1200px) {
+    .main-content {
+        grid-template-columns: 1fr 250px;
+    }
+    
+    .library {
+        min-width: 250px;
+    }
+}
+
+@media (max-width: 900px) {
+    .main-content {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto;
+        min-height: 0;
+        overflow: visible;
+    }
+    
+    .library {
+        max-height: 300px;
+        min-height: 200px;
+    }
+    
+    .decks-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto auto;
+        gap: 10px;
+    }
+    
+    .effects-section {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .footer {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .key-indicator {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 600px) {
+    .header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .deck-header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .volume-controls {
+        justify-content: center;
+    }
+    
+    .keyboard-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .eq-controls {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+    .app-container {
+        height: -webkit-fill-available;
+    }
+    
+    .modal {
+        position: fixed;
+        height: -webkit-fill-available;
+    }
+}
+
+/* Print styles */
+@media print {
+    .app-container {
+        display: none;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    :root {
+        --text-color: #ffffff;
+        --dark-bg: #000000;
+        --darker-bg: #111111;
+    }
+    
+    .track-artist,
+    .track-item-artist {
+        opacity: 1;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .key-pressed {
+        animation: none;
+    }
+    
+    .progress {
+        transition: none;
+    }
+    
+    .volume-level {
+        transition: none;
+    }
+}
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">KEYBOARD DJ</div>
+            <div class="header-controls">
+                <button class="header-btn" id="upload-btn">Upload Tracks</button>
+                <button class="header-btn" id="help-btn">Keyboard Help (F1)</button>
+            </div>
+        </header>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="decks-container">
+                <!-- Deck 1 -->
+                <div class="deck deck1">
+                    <div class="deck-header">
+                        <div class="deck-title">DECK 1</div>
+                        <div class="track-info">
+                            <div class="track-name" id="track1-name">No track loaded</div>
+                            <div class="track-artist" id="track1-artist">Drop a track from library</div>
+                        </div>
+                        <div class="volume-controls">
+                            <div class="volume-label">VOL</div>
+                            <div class="volume-meter">
+                                <div class="volume-level" id="volume1"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="waveform" id="waveform1">
+                        <div class="progress" id="progress1"></div>
+                    </div>
+                    
+                    <div class="playback-controls">
+                        <button class="control-btn" id="play1">Play (Q)</button>
+                        <button class="control-btn" id="pause1">Pause (A)</button>
+                        <button class="control-btn" id="cue1">Cue (Z)</button>
+                    </div>
+                    
+                    <div class="pitch-control">
+                        <label for="pitch1">Pitch: <span id="pitch1-value">0.0</span>%</label>
+                        <input type="range" min="-8" max="8" value="0" step="0.1" class="pitch-slider" id="pitch1">
+                    </div>
+                    
+                    <div class="eq-controls">
+                        <div class="eq-knob">
+                            <div class="knob" id="bass1"></div>
+                            <div class="eq-label">Bass (W/S)</div>
+                        </div>
+                        <div class="eq-knob">
+                            <div class="knob" id="mid1"></div>
+                            <div class="eq-label">Mid (E/D)</div>
+                        </div>
+                        <div class="eq-knob">
+                            <div class="knob" id="treble1"></div>
+                            <div class="eq-label">Treble (R/F)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="bpm-display">BPM: <span id="bpm1">--</span></div>
+                </div>
+                
+                <!-- Deck 2 -->
+                <div class="deck deck2">
+                    <div class="deck-header">
+                        <div class="deck-title">DECK 2</div>
+                        <div class="track-info">
+                            <div class="track-name" id="track2-name">No track loaded</div>
+                            <div class="track-artist" id="track2-artist">Drop a track from library</div>
+                        </div>
+                        <div class="volume-controls">
+                            <div class="volume-label">VOL</div>
+                            <div class="volume-meter">
+                                <div class="volume-level" id="volume2"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="waveform" id="waveform2">
+                        <div class="progress" id="progress2"></div>
+                    </div>
+                    
+                    <div class="playback-controls">
+                        <button class="control-btn" id="play2">Play (P)</button>
+                        <button class="control-btn" id="pause2">Pause (L)</button>
+                        <button class="control-btn" id="cue2">Cue (M)</button>
+                    </div>
+                    
+                    <div class="pitch-control">
+                        <label for="pitch2">Pitch: <span id="pitch2-value">0.0</span>%</label>
+                        <input type="range" min="-8" max="8" value="0" step="0.1" class="pitch-slider" id="pitch2">
+                    </div>
+                    
+                    <div class="eq-controls">
+                        <div class="eq-knob">
+                            <div class="knob" id="bass2"></div>
+                            <div class="eq-label">Bass (O/K)</div>
+                        </div>
+                        <div class="eq-knob">
+                            <div class="knob" id="mid2"></div>
+                            <div class="eq-label">Mid (I/J)</div>
+                        </div>
+                        <div class="eq-knob">
+                            <div class="knob" id="treble2"></div>
+                            <div class="eq-label">Treble (U/H)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="bpm-display">BPM: <span id="bpm2">--</span></div>
+                </div>
+                
+                <!-- Crossfader -->
+                <div class="crossfader-container">
+                    <label for="crossfader">Crossfader: <span id="crossfader-value">50</span>%</label>
+                    <input type="range" min="0" max="100" value="50" class="crossfader" id="crossfader">
+                </div>
+                
+                <!-- Effects Section -->
+                <div class="effects-section">
+                    <div class="effect" id="effect1">
+                        <div class="effect-name">Flanger (1)</div>
+                        <div class="effect-status">OFF</div>
+                    </div>
+                    <div class="effect" id="effect2">
+                        <div class="effect-name">Echo (2)</div>
+                        <div class="effect-status">OFF</div>
+                    </div>
+                    <div class="effect" id="effect3">
+                        <div class="effect-name">Reverb (3)</div>
+                        <div class="effect-status">OFF</div>
+                    </div>
+                    <div class="effect" id="effect4">
+                        <div class="effect-name">Filter (4)</div>
+                        <div class="effect-status">OFF</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Library -->
+            <div class="library">
+                <div class="library-header">
+                    <div class="library-title">Track Library</div>
+                    <button class="upload-btn" id="library-upload-btn">Upload</button>
+                </div>
+                <div class="track-list" id="track-list">
+                    <!-- Track items will be added here dynamically -->
+                </div>
+            </div>
+        </main>
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="key-indicator">
+                <div class="key">SPACE</div>
+                <div class="key-description">Play/Pause Both Decks</div>
+            </div>
+            <div class="key-indicator">
+                <div class="key">← →</div>
+                <div class="key-description">Adjust Crossfader</div>
+            </div>
+            <div class="key-indicator">
+                <div class="key">F1</div>
+                <div class="key-description">Show Help</div>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- Keyboard Help Modal -->
+    <div class="modal" id="help-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Keyboard Controls</div>
+                <button class="close-modal" id="close-modal">&times;</button>
+            </div>
+            <div class="keyboard-layout">
+                <div class="key-command">
+                    <div class="key-combo">
+                        <kbd>Q</kbd>
+                    </div>
+                    <div>Deck 1 Play</div>
+                </div>
+                <div class="key-command">
+                    <div class="key-combo">
+                        <kbd>A</kbd>
+                    </div>
+                    <div>Deck 1 Pause</div>
+                </div>
+                <div class="key-command">
+                    <div class="key-combo">
+                        <kbd>Z</kbd>
+                    </div>
+                    <div>Deck 1 Cue</div>
+                </div>
+                <div class="key-command">
+                    <div class="key-combo">
+                        <kbd>P</kbd>
+                    </div>
+                    <div>Deck 2 Play</div>
+                </div>
+                <div class="key-command">
+                    <div class="key-combo">
+                        <kbd>L</kbd>
+                    </div>
+                    <div>Deck 2 Pause</div>
+                </div>
+                <div class="key-command">
+                    <div class="key-combo">
+                        <kbd>M</kbd>
+                    </div>
+                    <div>Deck 2 Cue</div>
+                </div>
+                <div class="key-command">
+                    <div class="key-combo">
+                        <kbd>SPACE</kbd>
+                    </div>
+                    <div>Play/Pause Both</div>
+                </div>
+                <div class="key-command">
+                    <div class="key-combo">
+                        <kbd>←</kbd> / <kbd>→</kbd>
+                    </div>
+                    <div>Crossfader</div>
+                </div>
+                <div class="key-command">
+                    <div class="key-combo">
+                        <kbd>1</kbd> - <kbd>4</kbd>
+                    </div>
+                    <div>Effects Toggle</div>
+                </div>
+                <div class="key-command">
+                    <div class="key-combo">
+                        <kbd>F1</kbd>
+                    </div>
+                    <div>Help</div>
+                </div>
+                <div class="key-command">
+                    <div class="key-combo">
+                        <kbd>W</kbd> / <kbd>S</kbd>
+                    </div>
+                    <div>Deck 1 Bass</div>
+                </div>
+                <div class="key-command">
+                    <div class="key-combo">
+                        <kbd>E</kbd> / <kbd>D</kbd>
+                    </div>
+                    <div>Deck 1 Mid</div>
+                </div>
+                <div class="key-command">
+                    <div class="key-combo">
+                        <kbd>R</kbd> / <kbd>F</kbd>
+                    </div>
+                    <div>Deck 1 Treble</div>
+                </div>
+                <div class="key-command">
+                    <div class="key-combo">
+                        <kbd>O</kbd> / <kbd>K</kbd>
+                    </div>
+                    <div>Deck 2 Bass</div>
+                </div>
+                <div class="key-command">
+                    <div class="key-combo">
+                        <kbd>I</kbd> / <kbd>J</kbd>
+                    </div>
+                    <div>Deck 2 Mid</div>
+                </div>
+                <div class="key-command">
+                    <div class="key-combo">
+                        <kbd>U</kbd> / <kbd>H</kbd>
+                    </div>
+                    <div>Deck 2 Treble</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Upload Modal -->
+    <div class="modal" id="upload-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Upload Tracks</div>
+                <button class="close-modal" id="close-upload-modal">&times;</button>
+            </div>
+            <div class="upload-area" id="upload-area">
+                <div class="upload-icon">📁</div>
+                <div>Drag and drop audio files here or click to browse</div>
+                <input type="file" id="file-input" class="file-input" accept="audio/*" multiple>
+            </div>
+            <div class="file-upload-container">
+                <div class="uploaded-files" id="uploaded-files">
+                    <!-- Uploaded files will appear here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const helpBtn = document.getElementById('help-btn');
+        const helpModal = document.getElementById('help-modal');
+        const closeModal = document.getElementById('close-modal');
+        
+        const uploadBtn = document.getElementById('upload-btn');
+        const libraryUploadBtn = document.getElementById('library-upload-btn');
+        const uploadModal = document.getElementById('upload-modal');
+        const closeUploadModal = document.getElementById('close-upload-modal');
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const uploadedFiles = document.getElementById('uploaded-files');
+        const trackList = document.getElementById('track-list');
+        
+        // Deck elements
+        const play1Btn = document.getElementById('play1');
+        const pause1Btn = document.getElementById('pause1');
+        const cue1Btn = document.getElementById('cue1');
+        const pitch1Slider = document.getElementById('pitch1');
+        const pitch1Value = document.getElementById('pitch1-value');
+        const progress1 = document.getElementById('progress1');
+        const volume1 = document.getElementById('volume1');
+        const track1Name = document.getElementById('track1-name');
+        const track1Artist = document.getElementById('track1-artist');
+        const bpm1 = document.getElementById('bpm1');
+        
+        const play2Btn = document.getElementById('play2');
+        const pause2Btn = document.getElementById('pause2');
+        const cue2Btn = document.getElementById('cue2');
+        const pitch2Slider = document.getElementById('pitch2');
+        const pitch2Value = document.getElementById('pitch2-value');
+        const progress2 = document.getElementById('progress2');
+        const volume2 = document.getElementById('volume2');
+        const track2Name = document.getElementById('track2-name');
+        const track2Artist = document.getElementById('track2-artist');
+        const bpm2 = document.getElementById('bpm2');
+        
+        const crossfader = document.getElementById('crossfader');
+        const crossfaderValue = document.getElementById('crossfader-value');
+        
+        // Effect buttons
+        const effect1 = document.getElementById('effect1');
+        const effect2 = document.getElementById('effect2');
+        const effect3 = document.getElementById('effect3');
+        const effect4 = document.getElementById('effect4');
+        
+        // State variables
+        let deck1Playing = false;
+        let deck2Playing = false;
+        let deck1Progress = 0;
+        let deck2Progress = 0;
+        let activeEffects = [];
+        let deck1Volume = 70;
+        let deck2Volume = 70;
+        let libraryTracks = [
+            { id: 1, name: "Deep House Groove", artist: "DJ Pulse", duration: "3:45", bpm: 120 },
+            { id: 2, name: "Techno Rhythm", artist: "Beat Master", duration: "4:20", bpm: 125 },
+            { id: 3, name: "Trance Anthem", artist: "Synth Wizard", duration: "5:15", bpm: 140 },
+            { id: 4, name: "Drum & Bass Flow", artist: "Bassline King", duration: "4:50", bpm: 174 },
+            { id: 5, name: "Ambient Chill", artist: "Atmosphere", duration: "6:30", bpm: 90 }
+        ];
+        let deck1Track = null;
+        let deck2Track = null;
+        
+        // Modal functionality
+        helpBtn.addEventListener('click', () => {
+            helpModal.style.display = 'flex';
+        });
+        
+        closeModal.addEventListener('click', () => {
+            helpModal.style.display = 'none';
+        });
+        
+        uploadBtn.addEventListener('click', () => {
+            uploadModal.style.display = 'flex';
+        });
+        
+        libraryUploadBtn.addEventListener('click', () => {
+            uploadModal.style.display = 'flex';
+        });
+        
+        closeUploadModal.addEventListener('click', () => {
+            uploadModal.style.display = 'none';
+        });
+        
+        // Close modals when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === helpModal) {
+                helpModal.style.display = 'none';
+            }
+            if (e.target === uploadModal) {
+                uploadModal.style.display = 'none';
+            }
+        });
+        
+        // Upload functionality
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+        
+        function handleFiles(files) {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file.type.startsWith('audio/')) {
+                    addFileToUploadList(file);
+                    // Simulate file processing
+                    processFile(file);
+                }
+            }
+        }
+        
+        function addFileToUploadList(file) {
+            const fileElement = document.createElement('div');
+            fileElement.className = 'uploaded-file';
+            fileElement.innerHTML = `
+                <div class="file-name">${file.name}</div>
+                <div class="file-status status-processing">Processing...</div>
+            `;
+            uploadedFiles.appendChild(fileElement);
+        }
+        
+        function processFile(file) {
+            // In a real app, this would process the audio file
+            // For this demo, we'll just simulate processing
+            setTimeout(() => {
+                // Generate a random ID for the track
+                const trackId = libraryTracks.length + 1;
+                // Extract name without extension
+                const name = file.name.replace(/\.[^/.]+$/, "");
+                // Generate a random artist and duration
+                const artists = ["Neon Pulse", "Bass Commander", "Synth Master", "Rhythm Doctor", "Digital Dreamer"];
+                const artist = artists[Math.floor(Math.random() * artists.length)];
+                const duration = `${Math.floor(Math.random() * 3) + 2}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`;
+                const bpm = Math.floor(Math.random() * 40) + 110;
+                
+                // Add to library
+                const track = { id: trackId, name, artist, duration, bpm };
+                libraryTracks.push(track);
+                
+                // Update the upload status
+                const fileElements = uploadedFiles.querySelectorAll('.uploaded-file');
+                const lastFile = fileElements[fileElements.length - 1];
+                lastFile.querySelector('.file-status').textContent = 'Done';
+                lastFile.querySelector('.file-status').className = 'file-status status-success';
+                
+                // Add to track list
+                addTrackToLibrary(track);
+            }, 1500);
+        }
+        
+        function addTrackToLibrary(track) {
+            const trackElement = document.createElement('div');
+            trackElement.className = 'track-item';
+            trackElement.innerHTML = `
+                <div class="track-item-info">
+                    <div class="track-item-name">${track.name}</div>
+                    <div class="track-item-artist">${track.artist}</div>
+                </div>
+                <div class="track-item-duration">${track.duration}</div>
+                <div class="assign-buttons">
+                    <button class="assign-btn assign-deck1">D1</button>
+                    <button class="assign-btn assign-deck2">D2</button>
+                </div>
+            `;
+            
+            // Add event listeners for assign buttons
+            const deck1Btn = trackElement.querySelector('.assign-deck1');
+            const deck2Btn = trackElement.querySelector('.assign-deck2');
+            
+            deck1Btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                assignTrackToDeck(1, track);
+            });
+            
+            deck2Btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                assignTrackToDeck(2, track);
+            });
+            
+            // Add click event to load track on main click
+            trackElement.addEventListener('click', () => {
+                // Auto-assign to deck 1 if both empty, otherwise to the inactive deck
+                if (!deck1Track) {
+                    assignTrackToDeck(1, track);
+                } else if (!deck2Track) {
+                    assignTrackToDeck(2, track);
+                } else {
+                    // If both decks have tracks, assign to deck 1
+                    assignTrackToDeck(1, track);
+                }
+            });
+            
+            trackList.appendChild(trackElement);
+        }
+        
+        function assignTrackToDeck(deck, track) {
+            if (deck === 1) {
+                deck1Track = track;
+                track1Name.textContent = track.name;
+                track1Artist.textContent = track.artist;
+                bpm1.textContent = track.bpm;
+                // Reset progress when loading new track
+                deck1Progress = 0;
+                progress1.style.width = '0%';
+            } else {
+                deck2Track = track;
+                track2Name.textContent = track.name;
+                track2Artist.textContent = track.artist;
+                bpm2.textContent = track.bpm;
+                // Reset progress when loading new track
+                deck2Progress = 0;
+                progress2.style.width = '0%';
+            }
+        }
+        
+        // Initialize library tracks
+        function initLibrary() {
+            libraryTracks.forEach(track => {
+                addTrackToLibrary(track);
+            });
+        }
+        
+        // Keyboard event listener
+        document.addEventListener('keydown', (e) => {
+            // Prevent default behavior for our keys
+            if ([
+                'q', 'a', 'z', 'p', 'l', 'm', ' ',
+                'arrowleft', 'arrowright', '1', '2', '3', '4',
+                'w', 's', 'e', 'd', 'r', 'f',
+                'o', 'k', 'i', 'j', 'u', 'h', 'f1'
+            ].includes(e.key.toLowerCase())) {
+                e.preventDefault();
+                
+                // Add visual feedback for key press
+                const keyElement = document.querySelector(`[data-key="${e.key.toLowerCase()}"]`);
+                if (keyElement) {
+                    keyElement.classList.add('key-pressed');
+                    setTimeout(() => {
+                        keyElement.classList.remove('key-pressed');
+                    }, 100);
+                }
+            }
+            
+            // Handle key presses
+            switch(e.key.toLowerCase()) {
+                case 'q':
+                    toggleDeck1Play();
+                    break;
+                case 'a':
+                    toggleDeck1Pause();
+                    break;
+                case 'z':
+                    cueDeck1();
+                    break;
+                case 'p':
+                    toggleDeck2Play();
+                    break;
+                case 'l':
+                    toggleDeck2Pause();
+                    break;
+                case 'm':
+                    cueDeck2();
+                    break;
+                case ' ':
+                    toggleBothDecks();
+                    break;
+                case 'arrowleft':
+                    moveCrossfader(-5);
+                    break;
+                case 'arrowright':
+                    moveCrossfader(5);
+                    break;
+                case '1':
+                    toggleEffect(1);
+                    break;
+                case '2':
+                    toggleEffect(2);
+                    break;
+                case '3':
+                    toggleEffect(3);
+                    break;
+                case '4':
+                    toggleEffect(4);
+                    break;
+                case 'w':
+                    adjustEQ(1, 'bass', 5);
+                    break;
+                case 's':
+                    adjustEQ(1, 'bass', -5);
+                    break;
+                case 'e':
+                    adjustEQ(1, 'mid', 5);
+                    break;
+                case 'd':
+                    adjustEQ(1, 'mid', -5);
+                    break;
+                case 'r':
+                    adjustEQ(1, 'treble', 5);
+                    break;
+                case 'f':
+                    adjustEQ(1, 'treble', -5);
+                    break;
+                case 'o':
+                    adjustEQ(2, 'bass', 5);
+                    break;
+                case 'k':
+                    adjustEQ(2, 'bass', -5);
+                    break;
+                case 'i':
+                    adjustEQ(2, 'mid', 5);
+                    break;
+                case 'j':
+                    adjustEQ(2, 'mid', -5);
+                    break;
+                case 'u':
+                    adjustEQ(2, 'treble', 5);
+                    break;
+                case 'h':
+                    adjustEQ(2, 'treble', -5);
+                    break;
+                case 'f1':
+                    helpModal.style.display = helpModal.style.display === 'flex' ? 'none' : 'flex';
+                    break;
+            }
+        });
+        
+        // Deck 1 functions
+        function toggleDeck1Play() {
+            if (!deck1Playing && deck1Track) {
+                deck1Playing = true;
+                play1Btn.classList.add('active');
+                pause1Btn.classList.remove('active');
+                startDeckProgress(1);
+                updateVolumeMeter(1);
+                console.log('Deck 1 playing');
+            }
+        }
+        
+        function toggleDeck1Pause() {
+            if (deck1Playing) {
+                deck1Playing = false;
+                pause1Btn.classList.add('active');
+                play1Btn.classList.remove('active');
+                console.log('Deck 1 paused');
+            }
+        }
+        
+        function cueDeck1() {
+            deck1Progress = 0;
+            progress1.style.width = '0%';
+            console.log('Deck 1 cued');
+        }
+        
+        // Deck 2 functions
+        function toggleDeck2Play() {
+            if (!deck2Playing && deck2Track) {
+                deck2Playing = true;
+                play2Btn.classList.add('active');
+                pause2Btn.classList.remove('active');
+                startDeckProgress(2);
+                updateVolumeMeter(2);
+                console.log('Deck 2 playing');
+            }
+        }
+        
+        function toggleDeck2Pause() {
+            if (deck2Playing) {
+                deck2Playing = false;
+                pause2Btn.classList.add('active');
+                play2Btn.classList.remove('active');
+                console.log('Deck 2 paused');
+            }
+        }
+        
+        function cueDeck2() {
+            deck2Progress = 0;
+            progress2.style.width = '0%';
+            console.log('Deck 2 cued');
+        }
+        
+        // Both decks
+        function toggleBothDecks() {
+            if (deck1Playing || deck2Playing) {
+                // Pause both
+                toggleDeck1Pause();
+                toggleDeck2Pause();
+            } else {
+                // Play both
+                if (deck1Track) toggleDeck1Play();
+                if (deck2Track) toggleDeck2Play();
+            }
+        }
+        
+        // Crossfader
+        function moveCrossfader(amount) {
+            let currentValue = parseInt(crossfader.value);
+            let newValue = currentValue + amount;
+            
+            // Clamp between 0 and 100
+            newValue = Math.max(0, Math.min(100, newValue));
+            
+            crossfader.value = newValue;
+            crossfaderValue.textContent = newValue;
+            
+            // Adjust volumes based on crossfader position
+            deck1Volume = 70 - (newValue - 50) * 0.7;
+            deck2Volume = 70 + (newValue - 50) * 0.7;
+            
+            updateVolumeMeter(1);
+            updateVolumeMeter(2);
+            
+            console.log(`Crossfader position: ${newValue}`);
+        }
+        
+        // Effects
+        function toggleEffect(effectNumber) {
+            const effectElement = document.getElementById(`effect${effectNumber}`);
+            const statusElement = effectElement.querySelector('.effect-status');
+            
+            if (activeEffects.includes(effectNumber)) {
+                // Remove effect
+                activeEffects = activeEffects.filter(e => e !== effectNumber);
+                effectElement.classList.remove('active');
+                statusElement.textContent = 'OFF';
+                console.log(`Effect ${effectNumber} disabled`);
+            } else {
+                // Add effect
+                activeEffects.push(effectNumber);
+                effectElement.classList.add('active');
+                statusElement.textContent = 'ON';
+                console.log(`Effect ${effectNumber} enabled`);
+            }
+        }
+        
+        // EQ adjustment
+        function adjustEQ(deck, band, amount) {
+            const knob = document.getElementById(`${band}${deck}`);
+            // In a real app, this would adjust the actual EQ
+            console.log(`Deck ${deck} ${band} EQ adjusted by ${amount}`);
+            
+            // Visual feedback - rotate the knob
+            let currentRotation = parseInt(knob.style.transform?.replace('rotate(', '')?.replace('deg)', '') || 0);
+            let newRotation = currentRotation + amount * 3; // 3 degrees per step
+            newRotation = Math.max(-45, Math.min(45, newRotation)); // Limit rotation
+            knob.style.transform = `rotate(${newRotation}deg)`;
+        }
+        
+        // Progress simulation
+        function startDeckProgress(deck) {
+            if (deck === 1 && deck1Playing) {
+                deck1Progress += 0.5;
+                if (deck1Progress > 100) deck1Progress = 0;
+                progress1.style.width = `${deck1Progress}%`;
+                setTimeout(() => startDeckProgress(1), 100);
+            } else if (deck === 2 && deck2Playing) {
+                deck2Progress += 0.5;
+                if (deck2Progress > 100) deck2Progress = 0;
+                progress2.style.width = `${deck2Progress}%`;
+                setTimeout(() => startDeckProgress(2), 100);
+            }
+        }
+        
+        // Volume meter simulation
+        function updateVolumeMeter(deck) {
+            if (deck === 1 && deck1Playing) {
+                // Simulate varying volume levels
+                const level = deck1Volume + (Math.random() * 20 - 10);
+                volume1.style.height = `${Math.max(0, Math.min(100, level))}%`;
+                setTimeout(() => updateVolumeMeter(1), 100);
+            } else if (deck === 2 && deck2Playing) {
+                const level = deck2Volume + (Math.random() * 20 - 10);
+                volume2.style.height = `${Math.max(0, Math.min(100, level))}%`;
+                setTimeout(() => updateVolumeMeter(2), 100);
+            } else {
+                // When not playing, set to low level
+                if (deck === 1) volume1.style.height = '5%';
+                if (deck === 2) volume2.style.height = '5%';
+            }
+        }
+        
+        // Initialize the app
+        function init() {
+            // Set data-key attributes for visual feedback
+            document.querySelectorAll('.control-btn, .effect, .header-btn, .eq-label').forEach(el => {
+                const text = el.textContent;
+                const match = text.match(/\(([^)]+)\)/);
+                if (match) {
+                    const keys = match[1].split('/');
+                    keys.forEach(key => {
+                        const cleanKey = key.trim().toLowerCase();
+                        if (cleanKey) {
+                            el.setAttribute('data-key', cleanKey);
+                        }
+                    });
+                }
+            });
+            
+            // Add event listeners for button clicks (for mouse users)
+            play1Btn.addEventListener('click', toggleDeck1Play);
+            pause1Btn.addEventListener('click', toggleDeck1Pause);
+            cue1Btn.addEventListener('click', cueDeck1);
+            
+            play2Btn.addEventListener('click', toggleDeck2Play);
+            pause2Btn.addEventListener('click', toggleDeck2Pause);
+            cue2Btn.addEventListener('click', cueDeck2);
+            
+            effect1.addEventListener('click', () => toggleEffect(1));
+            effect2.addEventListener('click', () => toggleEffect(2));
+            effect3.addEventListener('click', () => toggleEffect(3));
+            effect4.addEventListener('click', () => toggleEffect(4));
+            
+            // Initialize crossfader event
+            crossfader.addEventListener('input', () => {
+                crossfaderValue.textContent = crossfader.value;
+                
+                // Adjust volumes based on crossfader position
+                deck1Volume = 70 - (crossfader.value - 50) * 0.7;
+                deck2Volume = 70 + (crossfader.value - 50) * 0.7;
+                
+                updateVolumeMeter(1);
+                updateVolumeMeter(2);
+            });
+            
+            // Initialize pitch sliders
+            pitch1Slider.addEventListener('input', () => {
+                pitch1Value.textContent = parseFloat(pitch1Slider.value).toFixed(1);
+            });
+            
+            pitch2Slider.addEventListener('input', () => {
+                pitch2Value.textContent = parseFloat(pitch2Slider.value).toFixed(1);
+            });
+            
+            // Initialize volume meters
+            updateVolumeMeter(1);
+            updateVolumeMeter(2);
+            
+            // Initialize library
+            initLibrary();
+            
+            console.log('Keyboard DJ initialized. Press F1 for help.');
+        }
+        
+        // Start the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
